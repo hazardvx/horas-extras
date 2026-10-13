@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es-PA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Formulario de Reconocimiento de Horas Extraordinarias de Labores — Caja de Seguro Social, Coordinación Administrativa de Herrera, Panamá.">
+<title>Formulario de Reconocimiento de Horas Extraordinarias de Labores — CSS</title>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<noscript>
+  <div class="aviso noscript">Este formulario necesita JavaScript activado para calcular las horas y generar la hoja imprimible.</div>
+</noscript>
+
+<!-- Barra de herramientas: SOLO pantalla, nunca se imprime -->
+<header class="barra" id="barra">
+  <div class="barra-titulo">Horas extraordinarias · CSS Herrera</div>
+  <div class="barra-acciones">
+    <span class="pildora" id="pildora-total" aria-live="polite">0 h 00 min</span>
+    <button type="button" class="btn btn-secundario" id="btn-limpiar">Limpiar formulario</button>
+    <button type="button" class="btn btn-primario" id="btn-imprimir">Imprimir</button>
+  </div>
+</header>
+
+<!-- Escena de la hoja: SOLO pantalla (se escala en pantallas angostas) -->
+<main class="zona-hoja" id="zona-hoja">
+  <div class="encuadre" id="encuadre">
+    <div class="escena" id="escena">
+      <div class="hoja" id="hoja"><!-- se construye desde js/app.js --></div>
+    </div>
+  </div>
+</main>
+
+<script src="js/calculo.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

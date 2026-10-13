@@ -1,0 +1,556 @@
+/* =========================================================================
+   Formulario de Reconocimiento de Horas Extraordinarias de Labores — CSS
+   Pantalla + impresión (@media print). Sin frameworks, sin CDN.
+
+   >>> PAPEL: cambia --hoja-ancho / --hoja-alto Y la regla @page de abajo
+       (las dos cosas, juntas) para pasar de Carta a A4.
+       Carta: 215.9mm × 279.4mm   |   A4: 210mm × 297mm
+   >>> HORARIO ORDINARIO: js/calculo.js (HORA_INICIO_REGULAR / HORA_FIN_REGULAR)
+   ========================================================================= */
+
+:root {
+  --hoja-ancho: 215.9mm;              /* Carta 8.5 in  — A4: 210mm   */
+  --hoja-alto: 279.4mm;               /* Carta 11 in   — A4: 297mm   */
+
+  --tinta: #000;                      /* negro puro: imprime en B/N  */
+  --papel: #fff;
+  --fondo: #e8e8ed;
+  --fondo-oscuro: #1c1c1e;
+  --cromo: rgba(248, 248, 250, 0.82);
+  --cromo-borde: rgba(0, 0, 0, 0.09);
+  --texto-cromo: #1c1c1e;
+  --texto-tenue: #6c6c70;
+  --acento: #007aff;
+  --aviso: #b25000;
+  --radio: 11px;
+}
+
+/* Tamaño de la hoja (debe coincidir con --hoja-ancho / --hoja-alto) */
+@page {
+  size: Letter portrait;
+  margin: 0;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto-cromo);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
+               system-ui, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+::selection { background: rgba(0, 122, 255, 0.22); }
+
+/* =========================== BARRA (solo pantalla) ===================== */
+
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(9px + env(safe-area-inset-top, 0px)) 16px 9px;
+  background: var(--cromo);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border-bottom: 1px solid var(--cromo-borde);
+}
+
+.barra-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--texto-tenue);
+  white-space: nowrap;
+}
+
+.barra-acciones {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.pildora {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-tenue);
+  background: rgba(120, 120, 128, 0.14);
+  border-radius: 999px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  height: 40px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: var(--radio);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 100ms ease-out, opacity 100ms ease-out,
+              background-color 150ms ease, box-shadow 150ms ease;
+}
+.btn:active { transform: scale(0.97); opacity: 0.85; }
+.btn:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+.btn-primario {
+  background: #0069d9;                   /* blanco sobre este azul: 4.7:1 */
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+}
+.btn-primario:hover { background: #0057bd; }
+
+.btn-secundario {
+  background: rgba(120, 120, 128, 0.16);
+  color: var(--texto-cromo);
+}
+.btn-secundario:hover { background: rgba(120, 120, 128, 0.24); }
+
+/* ========================= ZONA DE LA HOJA ============================= */
+
+.zona-hoja {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 26px 16px 56px;
+  min-height: calc(100vh - 58px);
+}
+
+.encuadre { margin: 0 auto; }               /* tamaño lo pone app.js */
+
+.escena {
+  transform-origin: top left;
+  transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+/* ------------------------------- LA HOJA ------------------------------ */
+
+.hoja {
+  position: relative;                       /* ancla del riel de avisos */
+  width: var(--hoja-ancho);
+  height: calc(var(--hoja-alto) - 0.5mm);   /* 0.5mm menos: evita hoja 2 */
+  padding: 10mm 11mm 8mm;                   /* márgenes seguros: ≥10mm   */
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 20px 44px rgba(0, 0, 0, 0.18);
+}
+
+/* Reparto vertical de TODA la hoja (suma 100 fr) */
+.impresion {
+  display: grid;
+  grid-template-rows: 27fr 23fr 3.5fr 5fr 6.5fr 11fr 4.5fr 8.5fr 11fr;
+  height: 100%;
+}
+.impresion > * { min-height: 0; }
+
+/* ---------------------------- 1. ENCABEZADO --------------------------- */
+
+.b-encabezado { position: relative; }
+
+.logo {
+  position: absolute;
+  left: 0;
+  top: 2.5mm;
+  width: 23mm;
+  height: 23mm;
+  object-fit: contain;                      /* nunca deforma el sello */
+}
+.logo-ausente { visibility: hidden; }       /* conserva el espacio */
+
+.centrado { padding-top: 23.5mm; text-align: center; }
+
+.org {
+  margin: 0;
+  font: bold 14pt/1.25 Arial, Helvetica, sans-serif;
+  letter-spacing: 0.01em;
+}
+.org.sub {
+  margin-top: 0.4mm;
+  text-decoration: underline;
+  text-underline-offset: 1.2mm;
+  text-decoration-thickness: 0.5mm;
+}
+
+.titulo {
+  margin: 5mm 0 0;
+  font: bold 16pt/1.3 "Times New Roman", Times, serif;
+}
+.titulo span { display: block; }
+
+/* ------------------------ 2. LAS 12 FILAS ----------------------------- */
+
+.b-filas {
+  display: grid;
+  grid-template-rows: repeat(12, 1fr);
+}
+
+.fila {
+  display: grid;
+  /* etiqueta | hora inicial | a | hora final | ", del día" | fecha | punto */
+  grid-template-columns: 21% 12% 4% 12% 10.5% 35% 5.5%;
+  align-items: center;
+}
+
+.c-etiqueta {
+  padding-right: 1.5mm;
+  text-align: right;
+  white-space: nowrap;
+  font: bold 12.5pt/1 Arial, Helvetica, sans-serif;
+}
+.c-a { text-align: center; font: bold 12.5pt/1 Arial, Helvetica, sans-serif; }
+.c-deldia { padding-left: 0.6mm; white-space: nowrap; font: bold 12.5pt/1 Arial, Helvetica, sans-serif; }
+.c-punto { font: bold 12.5pt/1 Arial, Helvetica, sans-serif; }
+
+/* ------------------------ CAMPOS SUBRAYADOS --------------------------- */
+
+.campo {
+  display: flex;
+  align-items: flex-end;
+  height: 4.7mm;
+  min-width: 0;
+  border-bottom: 1.3px solid var(--tinta);  /* la línea es del contenedor */
+}
+
+.campo input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: 400 11pt/1 Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  appearance: none;
+  caret-color: var(--acento);
+}
+.campo input:focus { outline: none; }
+.campo:focus-within {
+  outline: 2px solid rgba(0, 122, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.campo input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.55; }
+.campo input::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+.campo input::-webkit-inner-spin-button,
+.campo input::-webkit-clear-button { -webkit-appearance: none; display: none; }
+
+/* Espejos: solo se ven al imprimir */
+.espejo {
+  display: none;
+  font: 400 11pt/1 Arial, Helvetica, sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;                /* nunca debe partirse en dos renglones */
+  flex: 0 0 auto;
+}
+
+/* ------------------- 3. TOTAL DE HORAS (calculado) -------------------- */
+
+.b-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.6mm;
+}
+.campo-total { width: 40mm; }
+.campo-total input { cursor: default; }
+
+.etiqueta-campo { font: bold 12.5pt/1 Arial, Helvetica, sans-serif; white-space: nowrap; }
+
+/* ------------------- 4. A FAVOR DEL FUNCIONARIO ----------------------- */
+
+.b-favor {
+  display: flex;
+  align-items: center;
+  gap: 1.6mm;
+}
+.campo-largo { flex: 1 1 auto; }
+
+/* -------------------------- 5. PÁRRAFO -------------------------------- */
+
+.b-parrafo { align-self: start; }
+
+.parrafo {
+  margin: 2mm 0 0;
+  font: bold 10pt/1.36 Arial, Helvetica, sans-serif;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.campo-inline {
+  display: inline-flex;
+  align-items: flex-end;
+  vertical-align: bottom;
+  width: 30mm;
+  height: 4.4mm;
+  margin: 0 0.6mm;
+  border-bottom: 1.3px solid var(--tinta);
+}
+.campo-inline input {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: 400 10pt/1 Arial, Helvetica, sans-serif;
+  -webkit-appearance: none;
+  appearance: none;
+  caret-color: var(--acento);
+}
+.campo-inline input:focus { outline: none; }
+.campo-inline:focus-within {
+  outline: 2px solid rgba(0, 122, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ------------------- 6. MOTIVO (5 líneas rayadas) --------------------- */
+
+.b-motivo { align-self: start; }
+
+.lineas {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: 400 11pt/4.6mm Arial, Helvetica, sans-serif;
+  color: var(--tinta);
+  background-color: transparent;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(4.6mm - 1.2px),
+    var(--tinta) calc(4.6mm - 1.2px),
+    var(--tinta) 4.6mm
+  );
+}
+
+textarea.lineas {
+  height: calc(4.6mm * 5);
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  outline: none;
+  caret-color: var(--acento);
+  background-attachment: local;             /* las rayas siguen al texto */
+}
+textarea.lineas::-webkit-scrollbar { width: 0; height: 0; }
+textarea.lineas:focus { outline: 2px solid rgba(0, 122, 255, 0.5); outline-offset: 2px; }
+
+.espejo-lineas { display: none; white-space: pre-wrap; overflow-wrap: break-word; height: calc(4.6mm * 5); }
+
+/* ------------------------- 7. FIRMA (a mano) -------------------------- */
+
+.b-firma {
+  display: flex;
+  align-items: center;
+  gap: 1.6mm;
+  align-self: start;
+}
+.campo-firma { flex: 1 1 auto; height: 5mm; }  /* vacío: NO es editable */
+
+/* ---------------------------- 8. NOTA --------------------------------- */
+
+.b-nota { align-self: start; padding-top: 2mm; }
+.nota {
+  margin: 0;
+  font: bold 8pt/1.35 Arial, Helvetica, sans-serif;
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.b-hueco { }                                  /* espacio libre inferior */
+
+/* ------------------ RIEL DE ETIQUETAS (solo pantalla) ------------------ */
+
+.riel {
+  position: absolute;
+  left: calc(100% + 2.5mm);
+  width: 32mm;
+  display: grid;
+  grid-template-rows: repeat(12, 1fr);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  padding-left: 3mm;
+  font-size: 9.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--texto-tenue);
+}
+.tag--extra { color: #0a84ff; }
+.tag--cruza { color: #5e5ce6; }
+.tag--aviso { color: var(--aviso); }
+
+/* --------------------------- AVISOS (no imprimen) --------------------- */
+
+.aviso {
+  margin: 1.2mm 0 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--aviso);
+}
+.aviso[hidden] { display: none; }
+.noscript {
+  margin: 12px;
+  padding: 12px 14px;
+  background: #fff4e5;
+  border: 1px solid #f0c48a;
+  border-radius: 8px;
+  color: #7a3d00;
+}
+
+/* ============================ RESPONSIVE ============================== */
+
+@media (max-width: 760px) {
+  .barra-titulo { display: none; }
+  .zona-hoja { padding: 14px 8px 40px; }
+  .btn { height: 44px; padding: 0 15px; font-size: 14.5px; }
+}
+
+@media (max-width: 430px) {
+  .pildora { display: none; }
+  .barra { padding-left: 10px; padding-right: 10px; }
+  .barra-acciones { gap: 8px; width: 100%; }
+  .btn-secundario { flex: 1 1 auto; }
+}
+
+/* ============================ MODO OSCURO ============================= */
+
+@media (prefers-color-scheme: dark) {
+  body { background: var(--fondo-oscuro); color: #f5f5f7; }
+  .barra {
+    background: rgba(30, 30, 32, 0.8);
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+  .barra-titulo, .pildora { color: #c7c7cc; }
+  .pildora { background: rgba(120, 120, 128, 0.24); }
+  .btn-secundario { background: rgba(120, 120, 128, 0.3); color: #f5f5f7; }
+  .btn-secundario:hover { background: rgba(120, 120, 128, 0.4); }
+  .hoja { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 48px rgba(0, 0, 0, 0.55); }
+  .tag--extra { color: #64b5ff; }
+  .tag--cruza { color: #9d9aff; }
+  .tag--aviso { color: #ffab70; }
+}
+
+/* ========================= MOVIMIENTO REDUCIDO ======================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .escena { transition: none !important; }
+  .btn { transition: none; }
+  * { animation-duration: 0.001ms !important; }
+}
+
+/* ======================================================================
+   IMPRESIÓN — Ctrl+P: Escala 100%, Márgenes: Ninguno
+   ====================================================================== */
+
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Nada de interfaz en el papel */
+  .barra,
+  .riel,
+  .aviso,
+  .noscript,
+  .tag { display: none !important; }
+
+  .zona-hoja {
+    display: block !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+  .encuadre { width: auto !important; height: auto !important; margin: 0 !important; }
+  .escena { transform: none !important; transition: none !important; width: auto !important; will-change: auto; }
+
+  .hoja {
+    margin: 0 !important;
+    width: var(--hoja-ancho);
+    height: calc(var(--hoja-alto) - 0.5mm);
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible !important;
+  }
+
+  /* Los inputs desaparecen: manda el espejo con el valor formateado */
+  .campo input,
+  .campo-inline input,
+  textarea.lineas { display: none !important; }
+
+  .espejo { display: inline !important; }
+  .espejo-lineas { display: block !important; }
+
+  .campo:focus-within,
+  .campo-inline:focus-within,
+  textarea.lineas:focus { outline: none !important; }
+
+  .campo,
+  .campo-inline,
+  .campo-firma,
+  .lineas { border-color: #000 !important; }
+
+  /* Sin íconos ni spinners de los controles nativos */
+  input::-webkit-calendar-picker-indicator,
+  input::-webkit-inner-spin-button,
+  input::-webkit-clear-button,
+  input::-webkit-outer-spin-button { display: none !important; -webkit-appearance: none !important; }
+
+  .parrafo, .nota, .org, .titulo, .c-etiqueta, .c-a, .c-deldia, .c-punto,
+  .etiqueta-campo, .espejo, .espejo-lineas {
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

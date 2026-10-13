@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es-PA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas del cálculo — Horas Extraordinarias CSS</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; padding: 28px 18px 60px;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #e8e8ed; color: #1c1c1e;
+  }
+  main { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.sub { margin: 0 0 20px; color: #6c6c70; font-size: 13.5px; }
+  .resumen { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .pildora { padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px;
+             background: rgba(120,120,128,.16); }
+  .pildora.ok { background: #d8f5dd; color: #0b6b25; }
+  .pildora.fallo { background: #ffe0dd; color: #a4181a; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px;
+          overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 12px 28px rgba(0,0,0,.10); }
+  th, td { padding: 9px 12px; text-align: left; font-size: 14px; border-bottom: 1px solid #ececf0; }
+  th { background: #f6f6f8; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #6c6c70; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .ok { color: #0b6b25; font-weight: 700; }
+  .fallo { color: #a4181a; font-weight: 700; }
+  code { font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1c1c1e; color: #f5f5f7; }
+    p.sub { color: #a1a1a6; }
+    table { background: #2c2c2e; box-shadow: none; }
+    th { background: #3a3a3c; color: #c7c7cc; }
+    th, td { border-bottom-color: #3a3a3c; }
+    .pildora.ok { background: #103b1c; color: #6ee787; }
+    .pildora.fallo { background: #4a1512; color: #ff8a84; }
+    .ok { color: #6ee787; } .fallo { color: #ff8a84; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pruebas del cálculo de horas extraordinarias</h1>
+  <p class="sub">Horario ordinario: 07:00 a 15:00 (definido en <code>js/calculo.js</code>). Sin errores de consola, sin redondeos.</p>
+  <div class="resumen" id="resumen"></div>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Caso</th><th>Inicio</th><th>Fin</th><th>Esperado</th><th>Obtenido</th><th>Estado</th></tr>
+    </thead>
+    <tbody id="cuerpo"></tbody>
+  </table>
+</main>
+
+<script src="js/calculo.js"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.CalculoHoras;
+  var cuerpo = document.getElementById("cuerpo");
+  var resumen = document.getElementById("resumen");
+  var html = "", n = 0, ok = 0, fallos = 0;
+
+  function min(h, m) { return h * 60 + m; }
+
+  function agregar(nombre, inicio, fin, esperado, opciones) {
+    n++;
+    opciones = opciones || {};
+    var r = C.calcularMinutosExtra(inicio, fin);
+    var correcto = (r.minutos === esperado);
+    if (opciones.aviso !== undefined) {
+      correcto = correcto && (r.aviso === opciones.aviso);
+    }
+    if (opciones.cruza !== undefined) {
+      correcto = correcto && (r.cruzaMedianoche === opciones.cruza);
+    }
+    correcto ? ok++ : fallos++;
+    var esperadoTxt = C.formatearDuracion(esperado) +
+      (opciones.aviso ? " + aviso \"" + opciones.aviso + "\"" : "") +
+      (opciones.cruza ? " + cruza" : "");
+    html += "<tr>" +
+      "<td class='num'>" + n + "</td>" +
+      "<td>" + nombre + "</td>" +
+      "<td class='num'>" + (inicio || "—") + "</td>" +
+      "<td class='num'>" + (fin || "—") + "</td>" +
+      "<td class='num'>" + esperadoTxt + "</td>" +
+      "<td class='num'>" + C.formatearDuracion(r.minutos) +
+        (r.aviso ? " + aviso \"" + r.aviso + "\"" : "") +
+        (r.cruzaMedianoche ? " + cruza" : "") + "</td>" +
+      "<td class='" + (correcto ? "ok" : "fallo") + "'>" + (correcto ? "OK" : "FALLO") + "</td>" +
+      "</tr>";
+  }
+
+  /* --- Casos pedidos ------------------------------------------------- */
+  agregar("Todo el horario regular",        "07:00", "15:00", 0);
+  agregar("Dentro del horario regular",     "08:00", "12:00", 0);
+  agregar("Una hora antes de las 7:00",     "06:00", "15:00", min(1, 0));
+  agregar("Dos horas y media después",      "07:00", "17:30", min(2, 30));
+  agregar("Antes y después (2 + 3)",        "05:00", "18:00", min(5, 0));
+  agregar("Mixto 6:30 a 15:45",             "06:30", "15:45", min(1, 15));
+  agregar("Solo después de las 15:00",      "15:00", "19:00", min(4, 0));
+  agregar("Solo antes de las 7:00",         "03:00", "06:00", min(3, 0));
+  agregar("Cruza la medianoche",            "22:00", "02:00", min(4, 0), { cruza: true });
+  agregar("Inicio = fin (aviso)",           "10:00", "10:00", 0, { aviso: "iguales" });
+
+  /* --- Casos extra de borde ------------------------------------------ */
+  agregar("Solo hora inicial (incompleta)", "07:00", "",       0, { aviso: "incompleta" });
+  agregar("Solo hora final (incompleta)",   "",      "15:00",  0, { aviso: "incompleta" });
+  agregar("Fila vacía",                     "",      "",       0);
+  agregar("00:00 a 00:01 (madrugada)",      "00:00", "00:01",  1);
+  agregar("Cruza medianoche dentro regular","22:00", "10:00",  min(9, 0), { cruza: true });
+  agregar("23:30 a 07:30 (cruza + regular)","23:30", "07:30",  min(7, 30), { cruza: true });
+  agregar("14:59 a 15:01 (casi regular)",   "14:59", "15:01",  1);
+
+  /* --- Total de varias filas ---------------------------------------- */
+  n++;
+  var varias = [
+    C.calcularMinutosExtra("06:00", "15:00"),   /* 60   */
+    C.calcularMinutosExtra("07:00", "17:30"),   /* 150  */
+    C.calcularMinutosExtra("08:00", "12:00"),   /* 0    */
+    C.calcularMinutosExtra("22:00", "02:00")    /* 240  */
+  ];
+  var total = C.sumarMinutosExtra(varias);
+  var totalOk = (total === 450);
+  totalOk ? ok++ : fallos++;
+  html += "<tr>" +
+    "<td class='num'>" + n + "</td>" +
+    "<td>Total de 4 filas (60 + 150 + 0 + 240)</td>" +
+    "<td class='num'>—</td><td class='num'>—</td>" +
+    "<td class='num'>" + C.formatearDuracion(450) + "</td>" +
+    "<td class='num'>" + C.formatearDuracion(total) + " (" + C.horasDecimales(total) + " h)</td>" +
+    "<td class='" + (totalOk ? "ok" : "fallo") + "'>" + (totalOk ? "OK" : "FALLO") + "</td>" +
+    "</tr>";
+
+  /* --- Formato impreso ---------------------------------------------- */
+  n++;
+  var formatoOk = (C.formatearDuracion(0) === "0 h 00 min") &&
+                  (C.formatearDuracion(90) === "1 h 30 min") &&
+                  (C.formatearDuracion(310) === "5 h 10 min");
+  formatoOk ? ok++ : fallos++;
+  html += "<tr>" +
+    "<td class='num'>" + n + "</td>" +
+    "<td>Formato impreso \"H h MM min\"</td>" +
+    "<td class='num'>—</td><td class='num'>—</td>" +
+    "<td class='num'>0 h 00 min · 1 h 30 min · 5 h 10 min</td>" +
+    "<td class='num'>" + C.formatearDuracion(0) + " · " + C.formatearDuracion(90) +
+      " · " + C.formatearDuracion(310) + "</td>" +
+    "<td class='" + (formatoOk ? "ok" : "fallo") + "'>" + (formatoOk ? "OK" : "FALLO") + "</td>" +
+    "</tr>";
+
+  cuerpo.innerHTML = html;
+  resumen.innerHTML =
+    "<span class='pildora " + (fallos ? "fallo" : "ok") + "'>" +
+      (fallos ? "FALLO" : "OK") + ": " + ok + " correctas</span>" +
+    "<span class='pildora " + (fallos ? "fallo" : "ok") + "'>" +
+      fallos + " con fallo</span>" +
+    "<span class='pildora'>" + n + " pruebas</span>";
+
+  document.title = (fallos ? "FALLO" : "OK") + " — Pruebas del cálculo";
+})();
+</script>
+</body>
+</html>
