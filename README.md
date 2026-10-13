@@ -8,9 +8,11 @@ HTML5 + CSS3 + JavaScript vanilla: sin frameworks, sin CDN, sin internet, sin ba
 
 1. Haz doble clic en `index.html` (Chrome o Edge sobre Windows). Funciona con `file://`,
    offline, y también en el teléfono (misma carpeta, o súbela a cualquier hosting/Drive).
-2. Llena las 12 filas: hora inicial, hora final y fecha. El **total se calcula solo**
+2. **En línea (GitHub Pages):** <https://hazardvx.github.io/horas-extras/> — se abre desde
+   cualquier dispositivo con internet. El archivo local sigue siendo el que garantiza uso offline.
+3. Llena las 12 filas: hora inicial, hora final y fecha. El **total se calcula solo**
    (solo cuentan las horas antes de las 7:00 a. m. y después de las 3:00 p. m.).
-3. Botón **Imprimir** (o Ctrl + P).
+4. Botón **Imprimir** (o Ctrl + P).
 
 ## Cómo imprimir (importante)
 
