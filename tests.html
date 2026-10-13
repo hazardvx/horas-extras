@@ -67,7 +67,7 @@
   function agregar(nombre, inicio, fin, esperado, opciones) {
     n++;
     opciones = opciones || {};
-    var r = C.calcularMinutosExtra(inicio, fin);
+    var r = C.calcularMinutosExtra(inicio, fin, undefined, undefined, !!opciones.sabado);
     var correcto = (r.minutos === esperado);
     if (opciones.aviso !== undefined) {
       correcto = correcto && (r.aviso === opciones.aviso);
@@ -78,7 +78,8 @@
     correcto ? ok++ : fallos++;
     var esperadoTxt = C.formatearDuracion(esperado) +
       (opciones.aviso ? " + aviso \"" + opciones.aviso + "\"" : "") +
-      (opciones.cruza ? " + cruza" : "");
+      (opciones.cruza ? " + cruza" : "") +
+      (opciones.sabado ? " (sábado)" : "");
     html += "<tr>" +
       "<td class='num'>" + n + "</td>" +
       "<td>" + nombre + "</td>" +
@@ -112,6 +113,14 @@
   agregar("Cruza medianoche dentro regular","22:00", "10:00",  min(9, 0), { cruza: true });
   agregar("23:30 a 07:30 (cruza + regular)","23:30", "07:30",  min(7, 30), { cruza: true });
   agregar("14:59 a 15:01 (casi regular)",   "14:59", "15:01",  1);
+
+  /* --- Sábado: todas las horas trabajadas cuentan como extra --------- */
+  agregar("Sáb 7 a 3 (todo cuenta)",          "07:00", "15:00",  min(8, 0),  { sabado: true });
+  agregar("Sáb 8 a 12 (todo cuenta)",         "08:00", "12:00",  min(4, 0),  { sabado: true });
+  agregar("Sáb 6 a 4 (todo cuenta)",          "06:00", "16:00",  min(10, 0), { sabado: true });
+  agregar("Sáb 22 a 2 (cruza medianoche)",    "22:00", "02:00",  min(4, 0),  { sabado: true, cruza: true });
+  /* Entre semana con misma fecha vacía: se mantiene la regla 7–3 */
+  agregar("Entre semana 7 a 3 (vacío)",       "07:00", "15:00",  0);
 
   /* --- Total de varias filas ---------------------------------------- */
   n++;

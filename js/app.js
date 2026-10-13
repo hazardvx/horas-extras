@@ -212,12 +212,10 @@
     if (res.aviso === "incompleta" || res.aviso === "iguales") {
       return { texto: "Revisar", clase: "tag tag--aviso" };
     }
-    if (res.cruzaMedianoche) {
-      return { texto: window.CalculoHoras.formatearDuracion(res.minutos) + " · cruza", clase: "tag tag--cruza" };
-    }
-    if (res.minutos > 0) {
-      return { texto: window.CalculoHoras.formatearDuracion(res.minutos), clase: "tag tag--extra" };
-    }
+    var etiqueta = window.CalculoHoras.formatearDuracion(res.minutos);
+    if (res.cruzaMedianoche) etiqueta += " · cruza";
+    if (res.esSabado && res.minutos > 0) etiqueta += " · sáb";
+    if (res.minutos > 0) return { texto: etiqueta, clase: "tag tag--extra" };
     return { texto: "0 (horario regular)", clase: "tag" };
   }
 
@@ -232,7 +230,15 @@
       var fin = fila.querySelector('input[data-par="fin"]');
       var fecha = fila.querySelector('input[data-par="fecha"]');
 
-      var res = C.calcularMinutosExtra(ini.value, fin.value);
+      /* Sábado (JS getDay: 6): todas las horas trabajadas cuentan como extra */
+      var esSabado = false;
+      if (fecha && fecha.value) {
+        var partes = fecha.value.split("-");
+        var d = new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10));
+        esSabado = d.getDay() === 6;
+      }
+
+      var res = C.calcularMinutosExtra(ini.value, fin.value, undefined, undefined, esSabado);
       total += res.minutos;
 
       actualizarEspejo(ini);

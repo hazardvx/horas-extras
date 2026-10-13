@@ -32,19 +32,21 @@ function solapeRangos(a1, a2, b1, b2) {
   return Math.max(0, Math.min(a2, b2) - Math.max(a1, b1));
 }
 
-/* Devuelve { minutos, aviso, cruzaMedianoche, incompleta, completa }
+/* Devuelve { minutos, aviso, cruzaMedianoche, incompleta, completa, esSabado }
    - inicio/fin: strings "HH:MM" (formato de <input type="time">)
    - regIni/regFin: horario ordinario opcional (default HORA_INICIO_REGULAR / HORA_FIN_REGULAR)
-   - Si fin < inicio el rango cruza la medianoche y se suman 1440 al fin.
-   - Horas extra = duración − solape con [regIni,regFin] del día 1
-                                    − solape con [regIni+1440,regFin+1440] del día 2  */
-function calcularMinutosExtra(inicio, fin, regIni, regFin) {
+   - esSabado: si es true, TODAS las horas trabajadas cuentan como extra
+     (el sábado no hay horario ordinario); si es false o undefined, solo
+     las horas antes de 7:00 a. m. y después de las 3:00 p. m.
+   - Si fin < inicio el rango cruza la medianoche y se suman 1440 al fin. */
+function calcularMinutosExtra(inicio, fin, regIni, regFin, esSabado) {
   var res = {
     minutos: 0,
     aviso: null,            // null | "incompleta" | "iguales"
     cruzaMedianoche: false,
     incompleta: false,
-    completa: false
+    completa: false,
+    esSabado: !!esSabado
   };
 
   var i = convertirAMinutos(inicio);
@@ -59,11 +61,6 @@ function calcularMinutosExtra(inicio, fin, regIni, regFin) {
     return res;
   }
 
-  var r1 = convertirAMinutos(regIni === undefined || regIni === null || regIni === "" ? HORA_INICIO_REGULAR : regIni);
-  var r2 = convertirAMinutos(regFin === undefined || regFin === null || regFin === "" ? HORA_FIN_REGULAR : regFin);
-  if (r1 === null) r1 = convertirAMinutos(HORA_INICIO_REGULAR);
-  if (r2 === null) r2 = convertirAMinutos(HORA_FIN_REGULAR);
-
   if (i === f) {
     res.aviso = "iguales";
     return res;
@@ -76,6 +73,19 @@ function calcularMinutosExtra(inicio, fin, regIni, regFin) {
   }
 
   var duracion = finCalculado - i;
+
+  if (esSabado) {
+    /* Sábado: todas las horas trabajadas cuentan como extra */
+    res.minutos = duracion;
+    res.completa = true;
+    return res;
+  }
+
+  var r1 = convertirAMinutos(regIni === undefined || regIni === null || regIni === "" ? HORA_INICIO_REGULAR : regIni);
+  var r2 = convertirAMinutos(regFin === undefined || regFin === null || regFin === "" ? HORA_FIN_REGULAR : regFin);
+  if (r1 === null) r1 = convertirAMinutos(HORA_INICIO_REGULAR);
+  if (r2 === null) r2 = convertirAMinutos(HORA_FIN_REGULAR);
+
   var solapeDia1 = solapeRangos(i, finCalculado, r1, r2);
   var solapeDia2 = solapeRangos(i, finCalculado, r1 + MINUTOS_POR_DIA, r2 + MINUTOS_POR_DIA);
   var extra = duracion - solapeDia1 - solapeDia2;
