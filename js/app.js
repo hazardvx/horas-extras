@@ -343,6 +343,23 @@
     hoja.addEventListener("input", recalcular);
     hoja.addEventListener("change", recalcular);
 
+    /* Enter pasa al siguiente campo: las 12 filas se llenan sin soltar el teclado
+       (hora inicial → hora final → fecha → siguiente fila). La textarea del
+       motivo no se toca: ahí Enter es salto de línea. */
+    hoja.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" || e.ctrlKey || e.metaKey || e.altKey) return;
+      var t = e.target;
+      if (!t || t.tagName !== "INPUT" || t.readOnly) return;
+      e.preventDefault();
+      var lista = hoja.querySelectorAll("input:not([readonly])");
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i] === t) {
+          if (i < lista.length - 1) lista[i + 1].focus();
+          return;
+        }
+      }
+    });
+
     /* En pantallas angostas: al tocar un campo se amplía la hoja para poder
        escribir cómodamente; al salir del formulario vuelve a la vista completa. */
     hoja.addEventListener("focusin", function (e) {

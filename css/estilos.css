@@ -338,25 +338,27 @@ body {
 .b-motivo { align-self: start; }
 
 .lineas {
+  --periodo-rayas: 17px;   /* píxel entero: las 5 rayas se ven idénticas en cualquier zoom */
   display: block;
   width: 100%;
   margin: 0;
   padding: 0;
   border: 0;
-  font: 400 11pt/4.6mm Arial, Helvetica, sans-serif;
+  font: 400 11pt/1 Arial, Helvetica, sans-serif;
+  line-height: var(--periodo-rayas);
   color: var(--tinta);
   background-color: transparent;
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
-    transparent calc(4.6mm - 1.2px),
-    var(--tinta) calc(4.6mm - 1.2px),
-    var(--tinta) 4.6mm
+    transparent calc(var(--periodo-rayas) - 1px),
+    var(--tinta) calc(var(--periodo-rayas) - 1px),
+    var(--tinta) var(--periodo-rayas)
   );
 }
 
 textarea.lineas {
-  height: calc(4.6mm * 5);
+  height: calc(var(--periodo-rayas) * 5);
   resize: none;
   overflow-y: auto;
   overflow-x: hidden;
@@ -368,7 +370,7 @@ textarea.lineas {
 textarea.lineas::-webkit-scrollbar { width: 0; height: 0; }
 textarea.lineas:focus { outline: 2px solid rgba(0, 122, 255, 0.5); outline-offset: 2px; }
 
-.espejo-lineas { display: none; white-space: pre-wrap; overflow-wrap: break-word; height: calc(4.6mm * 5); }
+.espejo-lineas { display: none; white-space: pre-wrap; overflow-wrap: break-word; height: calc(var(--periodo-rayas) * 5); }
 
 /* ------------------------- 7. FIRMA (a mano) -------------------------- */
 

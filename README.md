@@ -12,6 +12,9 @@ HTML5 + CSS3 + JavaScript vanilla: sin frameworks, sin CDN, sin internet, sin ba
    cualquier dispositivo con internet. El archivo local sigue siendo el que garantiza uso offline.
 3. Llena las 12 filas: hora inicial, hora final y fecha. El **total se calcula solo**
    (solo cuentan las horas antes de las 7:00 a. m. y después de las 3:00 p. m.).
+   Trucos de captura: **Enter pasa al siguiente campo** (fila 1 inicio → fin → fecha →
+   fila 2…), el ícono 🕐 del campo de hora abre el **reloj circular**, y también puedes
+   escribir directo (`624p` → 6:24 p. m.; fecha en dd/mm/aaaa).
 4. Botón **Imprimir** (o Ctrl + P).
 
 ## Cómo imprimir (importante)
